@@ -1,0 +1,203 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <malloc.h>
+#include <string.h>
+
+#define BLOCK_SIZE 1020
+
+#define BASE64_ERROR {puts("Error: source file is not Base64-encoded. Non-Base64 symbols in source file"); exit(EXIT_SUCCESS);};
+#define SOURCE_FILE_ERROR {puts("Error: cannot access source file"); exit(EXIT_SUCCESS);};
+#define MEM_ERROR {puts("Error: unable to allocate memory"); exit(EXIT_SUCCESS);};
+#define TARGET_FILE_ERROR {puts("Error: cannot access target file"); exit(EXIT_SUCCESS);};
+#define CMD_ARGUMENTS_ERROR {puts("Error: bad arguments. Usage:\nNAME\n\tb64 - Base64-encode/decode files\nSYNOPSIS\n\tb64 {-e|-d} [-i] [-f N] <sourcefilename> <targetfilename>\nDESCRIPTION\n\tEncode/decode SOURCEFILENAME to TARGETFILENAME\n\n\tOptions:\n\t\t-e\tencode\n\t\t-d\tdecode\n\t\t-i\tignore non-Base64 symbols (decode-only)\n\t\t-f N\tinsert newline every N symbols (encode-only)"); exit(EXIT_SUCCESS);};
+
+unsigned char * base64_encode(
+        unsigned const char * input_string,
+        unsigned const int input_length,
+        unsigned /*const*/ int output_length,
+        unsigned long long int * encoded_counter,
+        long int separate)
+{
+    unsigned char * output_string = (unsigned char *)malloc(output_length + 1 + (separate ? input_length / separate : 0));
+
+    if (output_string == NULL)
+        MEM_ERROR;
+
+    //printf("%d %d %d\n", input_length, output_length, output_length + 1 + input_length / (separate ? separate : input_length + 1));
+
+    static unsigned const char alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    static unsigned const int rest_table[] = {0, 2, 1};
+
+    int triple = 0,
+        j = 0,
+        r = 0;
+
+    for (int i = 0; i < input_length; triple = 0) {
+        for (int k = 2; k >= 0; k--) {
+            triple += (i < input_length ? input_string[i++] : (unsigned char) 0 & r++) << 8 * k;
+            printf("%c", input_string[i - 1]);
+        }
+        for (int k = 3; k >= r; k--) {
+            output_string[j++] = alpha[(triple >> k * 6) & 0x3F];
+
+            (* encoded_counter)++;
+
+            if (separate && * encoded_counter % separate == 0)
+                output_string[j++] = '\n';
+            //printf("%c", output_string[j - 1]);
+        }
+    }
+
+    for (int i = 0; i < rest_table[input_length % 3]; i++) {
+        output_string[j++] = '=';
+
+        (* encoded_counter)++;
+
+        if (separate && * encoded_counter % separate == 0)
+            output_string[j++] = '\n';
+    }
+
+    output_string[j] = '\0';
+
+    return output_string;
+}
+
+unsigned char * base64_decode(
+        unsigned const char * input_string,
+        unsigned const int input_length,
+        unsigned const int output_length,
+        const int * decode_table,
+        unsigned const int ignore_non_Base64,
+        unsigned int * decoded)
+{
+    unsigned char * output_string = (unsigned char *)malloc(output_length + 1);
+
+    if (output_string == NULL)
+        MEM_ERROR;
+
+    int quad = 0,
+        num = 0;
+
+    unsigned int j = 0,
+                 non_Base64_count = 0;
+
+    for (int i = 0; i < input_length; ) {
+        quad = 0;
+
+        for (int k = 3; k >= 0 && i < input_length; k--) {
+            num = input_string[i] == '=' ? 0 & i++ : decode_table[(unsigned int)input_string[i++]];
+
+            if (num < 0) {
+                if (ignore_non_Base64) {
+                    //printf(">%c<->%d< %d\n", input_string[i - 1], (int) input_string[i - 1], k);
+                    k++;
+                    non_Base64_count++;
+                    num = 0;
+                } else BASE64_ERROR;
+            }
+            quad += (num << (k * 6));
+        }
+
+        for (int k = 2; k >= 0 && j < (input_length - non_Base64_count) / 4 * 3; k--) {
+            output_string[j++] = (unsigned char) ((quad >> 8 * k) & 0xFF);
+            printf("%c", output_string[j - 1]);
+        }
+    }
+
+    output_string[j] = '\0';
+
+    * decoded = j;
+
+    return output_string;
+}
+
+int * base64_makeDecodeTable()
+{
+    int * decode_table = malloc(sizeof(int) * 128);
+
+    static unsigned const char encode_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+    for (int i = 0; i < 128; i++)
+        decode_table[i] = -1;
+
+    for (int k = 0; k < 64; k++)
+        decode_table[(unsigned int)encode_table[k]] = k;
+
+    return decode_table;
+}
+
+int main(int argc, char * argv[]) {
+    if (argc < 3)
+        CMD_ARGUMENTS_ERROR;
+
+    FILE * source,
+         * target;
+
+    unsigned char input_buff[BLOCK_SIZE], * output_buff;
+    unsigned int len = 0;
+    long int separate = 0;
+
+    //printf("%d %s\n", argc - 2, argv[argc - 2]);
+    //printf("%d %s\n", argc - 1, argv[argc - 1]);
+    //printf("%d %s\n", argc, argv[argc - 1]);
+
+    if (!strcmp(argv[1], "-e")) {
+        if (argc != 4 && argc != 6)
+            CMD_ARGUMENTS_ERROR;
+
+        unsigned long long int encoded_counter = 0;
+        char * endptr;
+
+        if (argc == 6) {
+            separate = strtol(argv[3], &endptr, 10);
+
+            if (*endptr != '\0') CMD_ARGUMENTS_ERROR;
+        }
+
+        //printf("%d\n", separate);
+
+        source = fopen(argv[argc - 2], "rb");
+        target = fopen(argv[argc - 1], "w");
+        fclose(target);
+        target = fopen(argv[argc - 1], "a");
+
+        if (source == NULL)
+            SOURCE_FILE_ERROR;
+        if (target == NULL)
+            TARGET_FILE_ERROR;
+
+        while ((len = fread(input_buff, 1, BLOCK_SIZE, source))) {
+            output_buff = base64_encode(input_buff, len, 4 * (len + 2) / 3, &encoded_counter, separate);
+
+            fwrite(output_buff, 1, strlen(output_buff), target);
+            free(output_buff);
+        }
+    }
+    else if (!strcmp(argv[1], "-d")) {
+        unsigned const int ignore_non_Base64 = !strcmp(argv[2], "-i") ? 1 : 0;
+        unsigned int decoded = 0;
+
+        source = fopen(argv[argc - 2], "rt");
+        target = fopen(argv[argc - 1], "wb");
+        fclose(target);
+        target = fopen(argv[argc - 1], "ab");
+
+        if (source == NULL) SOURCE_FILE_ERROR;
+        if (target == NULL) TARGET_FILE_ERROR;
+
+        int * decode_table = base64_makeDecodeTable();
+
+        while ((len = fread(input_buff, 1, BLOCK_SIZE, source))) {
+            output_buff = base64_decode(input_buff, len, len / 4 * 3, decode_table, ignore_non_Base64, &decoded);
+
+            printf("%d\n", decoded);
+
+            fwrite(output_buff, 1, decoded, target);
+            free(output_buff);
+        }
+    }
+    else
+        CMD_ARGUMENTS_ERROR;
+
+    return 0;
+}
