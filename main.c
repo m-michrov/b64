@@ -4,7 +4,7 @@
 #include <string.h>
 #include <time.h>
 
-#define BLOCK_SIZE 1020
+#define BLOCK_SIZE 4092
 
 #define BASE64_ERROR {puts("Error: source file is not Base64-encoded"); exit(EXIT_SUCCESS);};
 #define SOURCE_FILE_ERROR {puts("Error: cannot access source file"); exit(EXIT_SUCCESS);};
@@ -18,12 +18,10 @@ unsigned char * base64_encode(
         unsigned long long * encoded_counter,
         unsigned const int separate)
 {
-    unsigned char * output_string = (unsigned char *)malloc(4 * (input_length + 2) / 3 + 1 + (separate ? input_length / separate : 0));
+    unsigned char * output_string = (unsigned char *)malloc(4 * (input_length + 2) / 3 + 1 + (separate ? 4 * (input_length + 2) / 3 / separate : 0));
 
     if (output_string == NULL)
     MEM_ERROR;
-
-    //printf("%d %d\n", input_length,  4 * (input_length + 2) / 3 + 1 + input_length / (separate ? separate : input_length + 1));
 
     static unsigned const char alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     static unsigned const int rest_table[] = {0, 2, 1};
@@ -41,7 +39,7 @@ unsigned char * base64_encode(
 
             (* encoded_counter)++;
 
-            if (separate && * encoded_counter % separate == 0)
+            if (separate && (* encoded_counter) % separate == 0)
                 output_string[j++] = '\n';
         }
     }
@@ -51,7 +49,7 @@ unsigned char * base64_encode(
 
         (* encoded_counter)++;
 
-        if (separate && * encoded_counter % separate == 0)
+        if (separate && (* encoded_counter) % separate == 0)
             output_string[j++] = '\n';
     }
 
@@ -154,7 +152,7 @@ int main(int argc, char * argv[]) {
         while ((len = fread(input_buff, 1, BLOCK_SIZE, source))) {
             output_buff = base64_encode(input_buff, len, &encoded_counter, (unsigned int)separate);
 
-            fwrite(output_buff, 1, strlen((char *)output_buff), target);
+            fwrite(output_buff, 1, strlen(output_buff), target);
             free(output_buff);
         }
 
@@ -166,7 +164,7 @@ int main(int argc, char * argv[]) {
         int char_buff = 0;
         unsigned int read_count = 0;
 
-        source = fopen(argv[argc - 2], "rb");
+        source = fopen(argv[argc - 2], "rt");
         target = fopen(argv[argc - 1], "wb");
         fclose(target);
         target = fopen(argv[argc - 1], "ab");
