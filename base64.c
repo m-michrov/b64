@@ -11,8 +11,7 @@ static unsigned char * base64_encode_with_separators(
 
     unsigned char * output_string = (unsigned char *)malloc(4 * (input_length + 2) / 3 + 4 * (input_length + 2) / 3 / separate + 1);
 
-    if (output_string == NULL)
-    MEM_ERROR;
+    if (output_string == NULL) MEM_ERROR;
 
     static unsigned const char encoding_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     static unsigned const int rest_table[] = {0, 2, 1};
@@ -51,8 +50,7 @@ static unsigned char * base64_encode(
 {
     unsigned char * output_string = (unsigned char *)malloc(4 * (input_length + 2) / 3 + 1);
 
-    if (output_string == NULL)
-    MEM_ERROR;
+    if (output_string == NULL) MEM_ERROR;
 
     static unsigned const char encoding_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     static unsigned const int rest_table[] = {0, 2, 1};
@@ -84,12 +82,11 @@ static unsigned char * base64_decode_ignore_non_base64(
 {
     unsigned char * output_string = (unsigned char *)malloc(input_length / 4 * 3 + 1);
 
-    if (output_string == NULL)
-    MEM_ERROR;
+    if (output_string == NULL) MEM_ERROR;
 
     int quad = 0,
-            num = 0,
-            index = 0;
+        num = 0,
+        index = 0;
 
     for (int i = 0; i < input_length; quad = 0) {
 
@@ -120,8 +117,7 @@ static unsigned char * base64_decode(
 {
     unsigned char * output_string = (unsigned char *)malloc(input_length / 4 * 3 + 1);
 
-    if (output_string == NULL)
-    MEM_ERROR;
+    if (output_string == NULL) MEM_ERROR;
 
     int quad = 0,
             num = 0,
@@ -132,8 +128,7 @@ static unsigned char * base64_decode(
         for (int k = 3; k >= 0 && i < input_length; k--) {
             num = input_string[i] == '=' ? 0 & i++ : decode_table[(unsigned int)input_string[i++]];
 
-            if (num < 0)
-            BASE64_ERROR;
+            if (num < 0) BASE64_ERROR;
 
             quad += (num << (k * 6));
         }
@@ -179,14 +174,12 @@ void encode(
     char * endptr;
     long int separate = 0;
 
-    if (argc != 4 && argc != 6)
-    CMD_ARGUMENTS_ERROR;
+    if (argc != 4 && argc != 6) CMD_ARGUMENTS_ERROR;
 
     if (argc == 6) {
         separate = strtol(argv[3], &endptr, 10);
 
-        if (*endptr != '\0')
-            CMD_ARGUMENTS_ERROR;
+        if (*endptr != '\0') CMD_ARGUMENTS_ERROR;
     }
 
     input = fopen(argv[argc - 2], "rb");
