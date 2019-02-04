@@ -1,20 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <malloc.h>
-#include <string.h>
-#include <time.h>
-
 #include "definitions.h"
 #include "base64.h"
 
 int main(int argc, char * argv[]) {
-    if (argc < 3)
-    CMD_ARGUMENTS_ERROR;
+    if (argc < 3) CMD_ARGUMENTS_ERROR;
 
-    if (!strcmp(argv[1], "-e")) {
+    if (!strcmp(argv[1], "-e"))
         encode(argc, argv);
-    }
-    else if (!strcmp(argv[1], "-d")) {
+
+    else if (!strcmp(argv[1], "-d"))
         switch (!strcmp(argv[2], "-i") ? 1 : 0) {
             case 1:
                 decode_ignore_non_base64(argv[argc - 2], argv[argc - 1]);
@@ -22,9 +15,8 @@ int main(int argc, char * argv[]) {
             default:
                 decode(argv[argc - 2], argv[argc - 1]);
         }
-    }
-    else
-    CMD_ARGUMENTS_ERROR;
+
+    else CMD_ARGUMENTS_ERROR;
 
     return 0;
 }

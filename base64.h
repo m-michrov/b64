@@ -9,22 +9,27 @@
 #include <string.h>
 #include <time.h>
 
-unsigned char * base64_encode(
+static unsigned char * base64_encode(
         unsigned const char * input_string,
         unsigned int input_length);
 
-unsigned char * base64_encode_with_separators(
+static unsigned char * base64_encode_with_separators(
         unsigned const char * input_string,
         unsigned int input_length,
         unsigned long long * encoded_counter,
         unsigned int separate);
 
-unsigned char * base64_decode(
+static unsigned char * base64_decode(
         unsigned const char * input_string,
         unsigned int input_length,
         const int * decode_table);
 
-int * base64_makeDecodeTable();
+static unsigned char * base64_decode_ignore_non_base64(
+        unsigned const char * input_string,
+        unsigned int input_length,
+        const int * decode_table);
+
+static int * base64_makeDecodeTable();
 
 void encode(
         int argc,

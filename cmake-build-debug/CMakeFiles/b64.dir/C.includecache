@@ -27,16 +27,6 @@ time.h
 E:/CLionProjects/b64/definitions.h
 
 E:/CLionProjects/b64/main.c
-stdio.h
--
-stdlib.h
--
-malloc.h
--
-string.h
--
-time.h
--
 definitions.h
 E:/CLionProjects/b64/definitions.h
 base64.h
