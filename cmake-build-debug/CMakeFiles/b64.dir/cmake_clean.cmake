@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/b64.dir/main.c.obj"
+  "CMakeFiles/b64.dir/base64.c.obj"
   "b64.pdb"
   "b64.exe"
   "b64.exe.manifest"

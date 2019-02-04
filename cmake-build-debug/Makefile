@@ -122,6 +122,33 @@ b64/fast:
 	$(MAKE) -f CMakeFiles\b64.dir\build.make CMakeFiles/b64.dir/build
 .PHONY : b64/fast
 
+base64.obj: base64.c.obj
+
+.PHONY : base64.obj
+
+# target to build an object file
+base64.c.obj:
+	$(MAKE) -f CMakeFiles\b64.dir\build.make CMakeFiles/b64.dir/base64.c.obj
+.PHONY : base64.c.obj
+
+base64.i: base64.c.i
+
+.PHONY : base64.i
+
+# target to preprocess a source file
+base64.c.i:
+	$(MAKE) -f CMakeFiles\b64.dir\build.make CMakeFiles/b64.dir/base64.c.i
+.PHONY : base64.c.i
+
+base64.s: base64.c.s
+
+.PHONY : base64.s
+
+# target to generate assembly for a file
+base64.c.s:
+	$(MAKE) -f CMakeFiles\b64.dir\build.make CMakeFiles/b64.dir/base64.c.s
+.PHONY : base64.c.s
+
 main.obj: main.c.obj
 
 .PHONY : main.obj
@@ -158,6 +185,9 @@ help:
 	@echo ... b64
 	@echo ... edit_cache
 	@echo ... rebuild_cache
+	@echo ... base64.obj
+	@echo ... base64.i
+	@echo ... base64.s
 	@echo ... main.obj
 	@echo ... main.i
 	@echo ... main.s

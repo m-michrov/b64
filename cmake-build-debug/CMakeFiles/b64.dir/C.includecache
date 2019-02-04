@@ -6,6 +6,26 @@
 
 #IncludeRegexTransform: 
 
+E:/CLionProjects/b64/base64.c
+definitions.h
+E:/CLionProjects/b64/definitions.h
+base64.h
+E:/CLionProjects/b64/base64.h
+
+E:/CLionProjects/b64/base64.h
+stdio.h
+-
+stdlib.h
+-
+malloc.h
+-
+string.h
+-
+time.h
+-
+
+E:/CLionProjects/b64/definitions.h
+
 E:/CLionProjects/b64/main.c
 stdio.h
 -
@@ -17,4 +37,8 @@ string.h
 -
 time.h
 -
+definitions.h
+E:/CLionProjects/b64/definitions.h
+base64.h
+E:/CLionProjects/b64/base64.h
 

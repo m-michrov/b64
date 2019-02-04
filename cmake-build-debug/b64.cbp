@@ -76,6 +76,15 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="E:/CLionProjects/b64/base64.c">
+			<Option target="b64"/>
+		</Unit>
+		<Unit filename="E:/CLionProjects/b64/base64.h">
+			<Option target="b64"/>
+		</Unit>
+		<Unit filename="E:/CLionProjects/b64/definitions.h">
+			<Option target="b64"/>
+		</Unit>
 		<Unit filename="E:/CLionProjects/b64/main.c">
 			<Option target="b64"/>
 		</Unit>
