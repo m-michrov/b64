@@ -1,15 +1,16 @@
 #include "definitions.h"
 #include "base64.h"
 
-static unsigned char * base64_encode_with_separators(
+void * base64_encode_with_separators(
         unsigned const char * input_string,
+        unsigned char * output_string,
         unsigned const int input_length,
         unsigned long long * encoded_counter,
         unsigned const int separate)
 {
     if (!separate) ACCESS_ERROR;
 
-    unsigned char * output_string = (unsigned char *)malloc(4 * (input_length + 2) / 3 + 4 * (input_length + 2) / 3 / separate + 1);
+    //unsigned char * output_string = (unsigned char *)malloc(4 * (input_length + 2) / 3 + 4 * (input_length + 2) / 3 / separate + 1);
 
     if (output_string == NULL) MEM_ERROR;
 
@@ -41,20 +42,22 @@ static unsigned char * base64_encode_with_separators(
 
     output_string[index] = '\0';
 
-    return output_string;
+    //return output_string;
 }
 
-static unsigned char * base64_encode(
+void * base64_encode(
         unsigned const char * input_string,
+        unsigned char * output_string,
         unsigned int input_length)
 {
-    static unsigned char output_string[BLOCK_SIZE + 1];
+    //static unsigned char output_string[BLOCK_SIZE + 1];
 
     static unsigned const char encoding_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
     int triple = 0,
         index = 0,
-        i = 0;
+        i = 0,
+        k = 0;
 
     for (i = 0; i < input_length - input_length % 3; triple = 0) {
         triple += input_string[i++] << 16;
@@ -67,33 +70,21 @@ static unsigned char * base64_encode(
         output_string[index++] = encoding_table[(triple) & 0x3F];
     }
 
-    triple = 0;
+    for (k = input_length % 3; k > 0; k--) {
+        triple += input_string[i++] << k * 8;
+    }
 
-    switch (input_length % 3) {
-        case 2:
-            triple += input_string[i++] << 16;
-            triple += input_string[i] << 8;
+    for (k = input_length % 3 + 1; k > 0; k--) {
+        output_string[index++] = encoding_table[(triple >> k * 6) & 0x3F];
+    }
 
-            output_string[index++] = encoding_table[(triple >> 18) & 0x3F];
-            output_string[index++] = encoding_table[(triple >> 12) & 0x3F];
-            output_string[index++] = encoding_table[(triple >> 6) & 0x3F];
-            output_string[index++] = '=';
-            break;
-        case 1:
-            triple += input_string[i] << 16;
-
-            output_string[index++] = encoding_table[(triple >> 18) & 0x3F];
-            output_string[index++] = encoding_table[(triple >> 12) & 0x3F];
-            output_string[index++] = '=';
-            output_string[index++] = '=';
-            break;
-        default:
-            ;
+    for (k = 3 - input_length % 3; k > 0; k--) {
+        output_string[index++] = '=';
     }
 
     output_string[index] = '\0';
 
-    return output_string;
+    //return output_string;
 }
 
 static unsigned char * base64_decode_ignore_non_base64(
@@ -188,7 +179,7 @@ void encode(
          * output;
 
     unsigned char input_buff[BLOCK_SIZE],
-                * output_buff;
+                  output_buff[BLOCK_SIZE / 3 * 4];
     unsigned int len = 0;
     unsigned long long int encoded_counter = 0;
 
@@ -205,30 +196,25 @@ void encode(
 
     input = fopen(argv[argc - 2], "rb");
     output = fopen(argv[argc - 1], "wb");
-    fclose(output);
-    output = fopen(argv[argc - 1], "ab");
 
-    if (input == NULL)
-    SOURCE_FILE_ERROR;
-    if (output == NULL)
-    TARGET_FILE_ERROR;
+    if (input == NULL) SOURCE_FILE_ERROR;
+    if (output == NULL) TARGET_FILE_ERROR;
 
     clock_t start = clock();
 
     switch (separate) {
         case 0:
             while ((len = fread(input_buff, 1, BLOCK_SIZE, input))) {
-                output_buff = base64_encode(input_buff, len);
+                base64_encode(input_buff, output_buff, len);
 
                 fwrite(output_buff, 1, strlen((char *)output_buff), output);
             }
             break;
         default:
             while ((len = fread(input_buff, 1, BLOCK_SIZE, input))) {
-                output_buff = base64_encode_with_separators(input_buff, len, &encoded_counter, (unsigned int)separate);
+                base64_encode_with_separators(input_buff, output_buff, len, &encoded_counter, (unsigned int)separate);
 
                 fwrite(output_buff, 1, strlen((char *)output_buff), output);
-                free(output_buff);
             }
     }
 
