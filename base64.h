@@ -9,12 +9,12 @@
 #include <string.h>
 #include <time.h>
 
-void * base64_encode(
+void base64_encode(
         unsigned const char * input_string,
         unsigned char * output_string,
         unsigned int input_length);
 
-void * base64_encode_with_separators(
+void base64_encode_with_separators(
         unsigned const char * input_string,
         unsigned char * output_string,
         unsigned int input_length,

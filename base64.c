@@ -1,7 +1,7 @@
 #include "definitions.h"
 #include "base64.h"
 
-void * base64_encode_with_separators(
+void base64_encode_with_separators(
         unsigned const char * input_string,
         unsigned char * output_string,
         unsigned const int input_length,
@@ -45,7 +45,7 @@ void * base64_encode_with_separators(
     //return output_string;
 }
 
-void * base64_encode(
+void base64_encode(
         unsigned const char * input_string,
         unsigned char * output_string,
         unsigned int input_length)
@@ -83,8 +83,6 @@ void * base64_encode(
     }
 
     output_string[index] = '\0';
-
-    //return output_string;
 }
 
 static unsigned char * base64_decode_ignore_non_base64(
