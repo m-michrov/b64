@@ -48,27 +48,48 @@ static unsigned char * base64_encode(
         unsigned const char * input_string,
         unsigned int input_length)
 {
-    unsigned char * output_string = (unsigned char *)malloc(4 * (input_length + 2) / 3 + 1);
-
-    if (output_string == NULL) MEM_ERROR;
+    static unsigned char output_string[BLOCK_SIZE + 1];
 
     static unsigned const char encoding_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    static unsigned const int rest_table[] = {0, 2, 1};
 
     int triple = 0,
         index = 0,
-        rest = 0;
+        i = 0;
 
-    for (int i = 0; i < input_length; triple = 0) {
-        for (int k = 2; k >= 0; k--)
-            triple += (i < input_length ? input_string[i++] : (unsigned char) 0 & rest++) << 8 * k;
+    for (i = 0; i < input_length - input_length % 3; triple = 0) {
+        triple += input_string[i++] << 16;
+        triple += input_string[i++] << 8;
+        triple += input_string[i++];
 
-        for (int k = 3; k >= rest; k--)
-            output_string[index++] = encoding_table[(triple >> k * 6) & 0x3F];
+        output_string[index++] = encoding_table[(triple >> 18) & 0x3F];
+        output_string[index++] = encoding_table[(triple >> 12) & 0x3F];
+        output_string[index++] = encoding_table[(triple >> 6) & 0x3F];
+        output_string[index++] = encoding_table[(triple) & 0x3F];
     }
 
-    for (int i = 0; i < rest_table[input_length % 3]; i++)
-        output_string[index++] = '=';
+    triple = 0;
+
+    switch (input_length % 3) {
+        case 2:
+            triple += input_string[i++] << 16;
+            triple += input_string[i] << 8;
+
+            output_string[index++] = encoding_table[(triple >> 18) & 0x3F];
+            output_string[index++] = encoding_table[(triple >> 12) & 0x3F];
+            output_string[index++] = encoding_table[(triple >> 6) & 0x3F];
+            output_string[index++] = '=';
+            break;
+        case 1:
+            triple += input_string[i] << 16;
+
+            output_string[index++] = encoding_table[(triple >> 18) & 0x3F];
+            output_string[index++] = encoding_table[(triple >> 12) & 0x3F];
+            output_string[index++] = '=';
+            output_string[index++] = '=';
+            break;
+        default:
+            ;
+    }
 
     output_string[index] = '\0';
 
@@ -200,7 +221,6 @@ void encode(
                 output_buff = base64_encode(input_buff, len);
 
                 fwrite(output_buff, 1, strlen((char *)output_buff), output);
-                free(output_buff);
             }
             break;
         default:
